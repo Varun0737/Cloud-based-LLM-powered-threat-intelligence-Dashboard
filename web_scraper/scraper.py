@@ -13,9 +13,11 @@ from sites import SITES
 UA = "Masters-DashboardBot/0.1 (+contact: shyamala002@gannon.edu)"
 TIMEOUT = 15
 SLEEP = 1.0
-PAGES_PER_SITE = 5            
+PAGES_PER_SITE = 250           
 REGION = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 BUCKET = os.getenv("DASH_BUCKET") 
+OVERWRITE_PREFIX = os.getenv("OVERWRITE_PREFIX", "latest")  # or "" to put at root
+CLEAN_OLD_PREFIXES = os.getenv("CLEAN_OLD_PREFIXES", "0") == "1"
 
 log = logging.getLogger("scraper")
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -140,17 +142,20 @@ def crawl_site(site_name: str, category: str, seeds: list[str]) -> tuple[list[di
 
 def main():
     assert BUCKET, "Set your bucket: export DASH_BUCKET=<your-bucket-name>"
-    today = datetime.now(timezone.utc).date().isoformat()
+
     for s in SITES:
         name, cat, seeds = s["name"], s["category"], s["seeds"]
         log.info(f"==> Crawling {name} ({cat})")
         raw_rows, clean_rows = crawl_site(name, cat, seeds)
 
-        raw_key   = f"raw/{name}/{today}/items.jsonl"
-        clean_key = f"clean/{name}/{today}/items.jsonl"
+        # ✅ Overwrite the same object every run (no date folder)
+        sub = f"/{OVERWRITE_PREFIX}" if OVERWRITE_PREFIX else ""
+        raw_key   = f"raw/{name}{sub}/items.jsonl"
+        clean_key = f"clean/{name}{sub}/items.jsonl"
+
         write_jsonl_s3(raw_key, raw_rows)
         write_jsonl_s3(clean_key, clean_rows)
-        log.info(f"Uploaded {len(raw_rows)} raw → s3://{BUCKET}/{raw_key}")
+        log.info(f"Uploaded {len(raw_rows)} raw  → s3://{BUCKET}/{raw_key}")
         log.info(f"Uploaded {len(clean_rows)} clean → s3://{BUCKET}/{clean_key}")
 
 if __name__ == "__main__":
