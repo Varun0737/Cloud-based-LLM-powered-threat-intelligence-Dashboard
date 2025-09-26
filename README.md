@@ -93,7 +93,7 @@ pytest backend/tests/unit/
 ## 👨‍💻 Team
 
 - **Varun Reddy Shyamala** - [shyamala002@gannon.edu](mailto:shyamala002@gannon.edu)
-- **Mounish Nizampatnam** - [izampat001@gannon.edu](mailto:izampat001@gannon.edu)
+- **Mounish Nizampatnam** - [izampat001@gannon.edu](mailto:nizampat001@gannon.edu)
 
 ## 🎓 Academic Context
 
