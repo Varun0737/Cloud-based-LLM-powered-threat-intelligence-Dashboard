@@ -1,0 +1,446 @@
+{
+    "Contents": [
+        {
+            "Key": "clean/amazon/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:23:28+00:00",
+            "ETag": "\"9f31c9ba3add9876855260a137f8e569\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 10954,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/books_to_scrape/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:20+00:00",
+            "ETag": "\"7d1e21afab5900aa592f051eea4e549d\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1700,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/books_to_scrape/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:35:24+00:00",
+            "ETag": "\"0b993dffa2a525baefbd597f7011aa9b\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1700,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/books_to_scrape/latest/items.jsonl",
+            "LastModified": "2025-09-24T05:48:26+00:00",
+            "ETag": "\"bf3cb85414ea23e2f64b9e37e6c766b4\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 4566,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/cnn/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:39:09+00:00",
+            "ETag": "\"ff841d2add3ee356fa874dfa81413294\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 745292,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/facebook/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:23:23+00:00",
+            "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 0,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/hacker_news/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:12+00:00",
+            "ETag": "\"617df6d11bb676c03ca327bbef749be7\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 4324,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/hacker_news/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:29:48+00:00",
+            "ETag": "\"0aa70c7f8a5749ac3bbd8b577169c67c\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 4328,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/hacker_news/latest/items.jsonl",
+            "LastModified": "2025-09-24T05:42:46+00:00",
+            "ETag": "\"b9a2fea6b3511278fa99816bd7b19c92\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 6810,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/juice_shop_local/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:28+00:00",
+            "ETag": "\"26c7140f478d4b278e74738bf7233820\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1137,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/juice_shop_local/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:35:30+00:00",
+            "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 0,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/juice_shop_local/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:39:10+00:00",
+            "ETag": "\"3347bd81e2661bfbd6589fc0cc5635be\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1755,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/mit_news/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:27+00:00",
+            "ETag": "\"7700f1114329e5b85a454816426f98f8\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 12257,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/mit_news/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:35:30+00:00",
+            "ETag": "\"7fe99f386e739aa201cd05486267a3bd\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 12259,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/mit_news/latest/items.jsonl",
+            "LastModified": "2025-09-24T05:48:33+00:00",
+            "ETag": "\"c3b61bd2588353b90457b5bcb36aaaf6\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 17459,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/openlibrary/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:39:37+00:00",
+            "ETag": "\"f9a021b14fff7fbbe9a1264b684c98f9\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 7794,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/usa_gov/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:19+00:00",
+            "ETag": "\"5543571f803cbc0d5a8c547bf33681e1\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 10875,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/usa_gov/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:35:20+00:00",
+            "ETag": "\"18af0c2a5b0c19dfd804ad2af9a2a30b\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 547407,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/usa_gov/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:35:51+00:00",
+            "ETag": "\"0a98700befffe2270f7f2d443ff2a4b4\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 756486,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "clean/wikipedia/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:39:24+00:00",
+            "ETag": "\"fea042846d1542800c33429d3575a910\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 45954,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/amazon/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:23:28+00:00",
+            "ETag": "\"7a1324df2b92daacbd0bcfa43f0bc97f\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 5916,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/books_to_scrape/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:20+00:00",
+            "ETag": "\"d6feda590692c6a9b23f2ebf8bbc2f6c\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 550,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/books_to_scrape/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:35:24+00:00",
+            "ETag": "\"4948c088529956066454aeacdc770736\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 550,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/books_to_scrape/latest/items.jsonl",
+            "LastModified": "2025-09-24T05:48:26+00:00",
+            "ETag": "\"9a3e2e68a50fcd8602d5fbe76510c9eb\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 616,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/cnn/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:39:09+00:00",
+            "ETag": "\"8290c9b187390ee1408c4e87f444ff61\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 257299,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/facebook/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:23:23+00:00",
+            "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 0,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/hacker_news/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:12+00:00",
+            "ETag": "\"a6bbc10db7af6276e2aa1829e862df65\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 2046,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/hacker_news/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:29:48+00:00",
+            "ETag": "\"0a50cf549156e23251c491454f4cc945\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 2046,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/hacker_news/latest/items.jsonl",
+            "LastModified": "2025-09-24T05:42:46+00:00",
+            "ETag": "\"5b186f3c1dd32312f206ca43269196dc\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 2182,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/juice_shop_local/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:28+00:00",
+            "ETag": "\"7e59fc3febdc753e8475a4925c2f706f\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 795,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/juice_shop_local/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:35:30+00:00",
+            "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 0,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/juice_shop_local/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:39:10+00:00",
+            "ETag": "\"f2216cf5813736d526aaab093abb3d5a\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 856,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/mit_news/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:27+00:00",
+            "ETag": "\"6a3a5fa156200850d92031cdecc595a0\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 6361,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/mit_news/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:35:30+00:00",
+            "ETag": "\"a3832f9a715b0f6be5fb8e5a3cc6ba5e\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 6363,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/mit_news/latest/items.jsonl",
+            "LastModified": "2025-09-24T05:48:33+00:00",
+            "ETag": "\"62b48931defe1dbf1a86fc06855e5b5d\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 6778,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/openlibrary/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:39:37+00:00",
+            "ETag": "\"918f9a84ee5c475a5c16574ff58c7623\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 1973,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/usa_gov/2025-09-08/items.jsonl",
+            "LastModified": "2025-09-08T23:16:19+00:00",
+            "ETag": "\"40e449bc5cc130ca66e0fd3ba1f6e8e3\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 5043,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/usa_gov/2025-09-24/items.jsonl",
+            "LastModified": "2025-09-24T02:35:20+00:00",
+            "ETag": "\"0c0de8918a9b34d336ab8b91a0c4cf3f\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 253439,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/usa_gov/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:35:51+00:00",
+            "ETag": "\"1825243de5479d24b0fc39f0e92956e9\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 272813,
+            "StorageClass": "STANDARD"
+        },
+        {
+            "Key": "raw/wikipedia/latest/items.jsonl",
+            "LastModified": "2025-09-25T20:39:24+00:00",
+            "ETag": "\"2baf7fed0ab047c140b1d52945d9b342\"",
+            "ChecksumAlgorithm": [
+                "CRC32"
+            ],
+            "ChecksumType": "FULL_OBJECT",
+            "Size": 18119,
+            "StorageClass": "STANDARD"
+        }
+    ],
+    "RequestCharged": null,
+    "Prefix": ""
+}
