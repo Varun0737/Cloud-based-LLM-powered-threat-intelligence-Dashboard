@@ -3,8 +3,8 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import authRoutes from "./auth.js";
 import searchRoutes from "./search.js";
+import authRouter from "./routes/auth.js";
 
 // ----- App & Parsers -----
 const app = express();
@@ -85,8 +85,11 @@ app.get("/api/docs", (_req, res) => {
 });
 
 // ----- Routers -----
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRouter);
 app.use("/api/search", searchRoutes);
+
+// mount routers BEFORE 404
+app.use("/api/auth", authRouter);
 
 // ----- 404 -----
 app.use((req, res) => {
