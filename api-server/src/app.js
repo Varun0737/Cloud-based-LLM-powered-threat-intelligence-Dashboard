@@ -4,6 +4,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import searchRoutes from "./search.js";
+import statsRoutes from "./routes/stats.js";
 import authRouter from "./routes/auth.js";
 
 // ----- App & Parsers -----
@@ -85,6 +86,7 @@ app.get("/api/docs", (_req, res) => {
 });
 
 // ----- Routers -----
+app.use("/api/stats", statsRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/search", searchRoutes);
 

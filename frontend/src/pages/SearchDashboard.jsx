@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import api from "../api";
 
@@ -42,12 +43,24 @@ export default function SearchDashboard() {
         <h1 className="text-xl font-semibold tracking-wide">
           Threat Intel Dashboard
         </h1>
-        <button
-          onClick={logout}
-          className="text-sm bg-red-500 hover:bg-red-600 px-3 py-1 rounded"
-        >
-          Logout
-        </button>
+
+        <div className="flex items-center gap-2">
+          {/* NEW: Visuals Button */}
+          <Link
+            to="/visuals"
+            className="text-sm bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded"
+          >
+            Visuals
+          </Link>
+
+          {/* Logout Button */}
+          <button
+            onClick={logout}
+            className="text-sm bg-red-500 hover:bg-red-600 px-3 py-1 rounded"
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       {/* Search Section */}

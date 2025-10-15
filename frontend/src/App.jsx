@@ -1,3 +1,4 @@
+import VisualDashboard from "./pages/VisualDashboard.jsx";
 import { Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import SearchDashboard from "./pages/SearchDashboard.jsx";
@@ -38,6 +39,7 @@ export default function App() {
       <Nav />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/visuals" element={<Guard><VisualDashboard /></Guard>} />
         <Route path="/" element={<Guard><SearchDashboard /></Guard>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
