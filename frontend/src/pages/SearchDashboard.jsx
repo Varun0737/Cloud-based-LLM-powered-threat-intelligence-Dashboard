@@ -52,7 +52,12 @@ export default function SearchDashboard() {
           >
             Visuals
           </Link>
-
+         <Link
+          to="/ask"
+            className="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded"
+          >
+            Ask AI 
+          </Link>
           {/* Logout Button */}
           <button
             onClick={logout}

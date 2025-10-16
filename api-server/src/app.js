@@ -5,6 +5,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import searchRoutes from "./search.js";
 import statsRoutes from "./routes/stats.js";
+import askRoutes from "./routes/ask.js";
 import authRouter from "./routes/auth.js";
 
 // ----- App & Parsers -----
@@ -89,6 +90,7 @@ app.get("/api/docs", (_req, res) => {
 app.use("/api/stats", statsRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/search", searchRoutes);
+app.use("/api/ask", askRoutes);
 
 // mount routers BEFORE 404
 app.use("/api/auth", authRouter);
