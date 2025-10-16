@@ -7,6 +7,8 @@ import searchRoutes from "./search.js";
 import statsRoutes from "./routes/stats.js";
 import askRoutes from "./routes/ask.js";
 import authRouter from "./routes/auth.js";
+import adminRoutes from "./routes/admin.js";
+import mfaRoutes from "./routes/mfa.js";
 
 // ----- App & Parsers -----
 const app = express();
@@ -91,6 +93,8 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/search", searchRoutes);
 app.use("/api/ask", askRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/mfa", mfaRoutes);
 
 // mount routers BEFORE 404
 app.use("/api/auth", authRouter);

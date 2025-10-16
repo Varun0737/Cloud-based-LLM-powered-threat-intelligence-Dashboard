@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import SearchDashboard from "./pages/SearchDashboard.jsx";
 import AiAskDashboard from "./pages/AiAskDashboard.jsx";
+import Signup from "./pages/Signup";
 
 function Nav() {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/visuals" element={<Guard><VisualDashboard /></Guard>} />
         <Route path="/" element={<Guard><SearchDashboard /></Guard>} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/signup" element={<Signup />} />
       </Routes>
     </div>
   );

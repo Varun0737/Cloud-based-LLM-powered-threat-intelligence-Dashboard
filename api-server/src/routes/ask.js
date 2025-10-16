@@ -1,71 +1,69 @@
 // api-server/src/routes/ask.js
 import { Router } from "express";
 import { spawn } from "node:child_process";
+import path from "node:path";
+import fs from "node:fs";
 import { requireAuth } from "../requireAuth.js";
 
 const router = Router();
 
-// ---- Config (env + sensible defaults) ----
-const PY = process.env.PYTHON_BIN || "python3"; // <— THIS is what spawn will use
 const META_PATH = process.env.META_PATH || "../llm-reader/data/meta.json";
 const INDEX_PATH = process.env.INDEX_PATH || "../llm-reader/data/index.faiss";
-const EMBED_MODEL = process.env.EMBED_MODEL || "BAAI/bge-small-en-v1.5";
-const K = Number(process.env.ASK_TOP_K || 6);
+const PYTHON_BIN = process.env.PYTHON_BIN || "/usr/bin/python3";
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+// OpenAI config (optional)
+const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
+const USE_OPENAI =
+  (process.env.MODE || "local").toLowerCase() === "openai" && !!OPENAI_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-// ---- Local (retrieval-only) helper via Python ----
-function retrieveLocal(question, k = K) {
+/**
+ * Run a small python snippet that:
+ *  - loads FAISS + fastembed
+ *  - searches the existing index
+ *  - returns the top-k items as `passages` (no giant raw answer)
+ */
+function pyAsk(question, k = 6) {
   return new Promise((resolve, reject) => {
-    // Single -c Python program. It embeds/normalizes the question, searches FAISS,
-    // returns top-k docs as JSON for the Node side to optionally summarize.
-    const code = `
-import json, numpy as np, faiss, sys
-from fastembed import TextEmbedding
+    const code = [
+      "import json, sys, numpy as np, faiss",
+      "from fastembed import TextEmbedding",
+      "",
+      `META_PATH = "${META_PATH}"`,
+      `INDEX_PATH = "${INDEX_PATH}"`,
+      `MODEL_NAME = "BAAI/bge-small-en-v1.5"`,
+      "",
+      "meta = json.load(open(META_PATH, 'r', encoding='utf-8'))",
+      "index = faiss.read_index(INDEX_PATH)",
+      "model = TextEmbedding(model_name=MODEL_NAME)",
+      "",
+      "def embed_one(q):",
+      "    v = np.array(list(model.embed([q]))[0], dtype=np.float32)[None, :]",
+      "    v = v / (np.linalg.norm(v, axis=1, keepdims=True) + 1e-12)",
+      "    return v",
+      "",
+      "if len(sys.argv) < 2:",
+      "    raise SystemExit('question required')",
+      "q = sys.argv[1]",
+      "qv = embed_one(q)",
+      "",
+      "if qv.shape[1] != index.d:",
+      "    raise RuntimeError(f'Dim mismatch: query {qv.shape[1]} vs index {index.d}')",
+      "",
+      `topk = max(1, min(20, int(${k})))`,
+      "D, I = index.search(qv, topk)",
+      "items = [meta[int(i)] for i in I[0]]",
+      "",
+      // Return passages only; Node will build the answer.
+      "print(json.dumps({'passages': items}, ensure_ascii=False))",
+    ].join("\n");
 
-META_PATH = ${JSON.stringify(META_PATH)}
-INDEX_PATH = ${JSON.stringify(INDEX_PATH)}
-MODEL_NAME = ${JSON.stringify(EMBED_MODEL)}
-K = ${JSON.stringify(k)}
+    const py = spawn(PYTHON_BIN, ["-c", code, question], {
+      cwd: path.resolve(process.cwd()),
+    });
 
-def load_meta(path):
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def load_index(path):
-    return faiss.read_index(path)
-
-def embed_query(model, q):
-    v = np.array(list(model.embed([q]))[0], dtype=np.float32)[None, :]
-    v /= (np.linalg.norm(v, axis=1, keepdims=True) + 1e-12)
-    return v
-
-question = sys.stdin.read().strip()  # read from stdin
-meta = load_meta(META_PATH)
-index = load_index(INDEX_PATH)
-model = TextEmbedding(model_name=MODEL_NAME)
-
-qv = embed_query(model, question)
-D, I = index.search(qv, K)
-
-items = []
-for idx in I[0]:
-    if 0 <= idx < len(meta):
-        m = meta[idx]
-        # keep payload light
-        items.append({
-            "id": m.get("id", idx),
-            "source": m.get("source", "unknown"),
-            "title": m.get("title", ""),
-            "snippet": (m.get("text") or "")[:800]
-        })
-
-print(json.dumps({"hits": items}, ensure_ascii=False))
-    `;
-
-    const py = spawn(PY, ["-c", code], { stdio: ["pipe", "pipe", "pipe"] });
-    let out = "", err = "";
+    let out = "";
+    let err = "";
 
     py.stdout.on("data", (d) => (out += d.toString()));
     py.stderr.on("data", (d) => (err += d.toString()));
@@ -74,95 +72,110 @@ print(json.dumps({"hits": items}, ensure_ascii=False))
         try {
           resolve(JSON.parse(out));
         } catch (e) {
-          reject(new Error("Failed to parse Python output: " + e.message));
+          reject(new Error("Bad JSON from python: " + e.message));
         }
       } else {
-        reject(new Error(err || "Python retrieval failed"));
+        reject(new Error(err || "python failed"));
       }
     });
-
-    // send the question via stdin
-    py.stdin.write(question + "\n");
-    py.stdin.end();
   });
 }
 
-// ---- Optional: summarize w/ OpenAI (if key is present) ----
-async function summarizeWithOpenAI(question, hits) {
-  if (!OPENAI_API_KEY) return null; // no key => skip LLM summarization
+// Simple local summarizer fallback (no external API)
+function localSummary(passages) {
+  const top = passages.slice(0, 4);
+  if (!top.length) return "I couldn’t find relevant passages.";
+  const sites = [...new Set(top.map((p) => p.site || p.source).filter(Boolean))];
 
-  // create a short, citation-style prompt
-  const context = hits
-    .map(
-      (h, i) =>
-        `[${i + 1}] SOURCE=${h.source} TITLE=${h.title}\nSNIPPET=${(h.snippet || "").slice(
-          0,
-          500
-        )}`
-    )
+  const bullets = top
+    .map((p, i) => {
+      const title = p.title || p.url || p.final_url || "Untitled";
+      const snip = ((p.text || p.snippet || "").replace(/\s+/g, " ").trim()).slice(0, 220);
+      return `- [${i + 1}] ${title} — ${snip}${snip.length === 220 ? "…" : ""}`;
+    })
+    .join("\n");
+
+  return `Based on ${top.length} retrieved documents from ${sites.join(", ") || "various sources"}, here’s a concise summary:\n\n${bullets}\n\n(See citations [1..${top.length}] below.)`;
+}
+
+// OpenAI-based summarizer (only used if OPENAI is configured)
+async function openaiSummary(passages, question) {
+  const { default: OpenAI } = await import("openai");
+  const client = new OpenAI({ apiKey: OPENAI_KEY });
+
+  const context = passages
+    .slice(0, 6)
+    .map((p, i) => {
+      const title = p.title || p.url || p.final_url || "Untitled";
+      const url = p.final_url || p.url || "";
+      const snip = ((p.text || p.snippet || "").replace(/\s+/g, " ").trim()).slice(0, 800);
+      return `[#${i + 1}] ${title}\n${url}\n${snip}`;
+    })
     .join("\n\n");
 
-  const system =
-    "You are a security analyst. Answer concisely and include inline citations like [1], [2] mapped to the provided snippets. If you’re unsure, say so.";
+  const system = `You are a security analyst. Write a clear, concise answer (5–8 sentences) to the user's question using only the provided passages.
+Cite sources inline as [1], [2], etc., matching the numbers shown before each passage.
+If information is insufficient, say so briefly. Keep it non-fluffy, actionable, and accurate.`;
 
-  const payload = {
+  const user = `Question: ${question}\n\nPassages:\n${context}`;
+
+  const resp = await client.chat.completions.create({
     model: OPENAI_MODEL,
     messages: [
       { role: "system", content: system },
-      {
-        role: "user",
-        content: `Question: ${question}\n\nContext:\n${context}\n\nRespond with a short summary and include [#] citations.`,
-      },
+      { role: "user", content: user },
     ],
     temperature: 0.2,
-  };
-
-  const r = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+    max_tokens: 600,
   });
 
-  if (!r.ok) {
-    const t = await r.text();
-    throw new Error(`OpenAI error: ${r.status} ${t}`);
-  }
-  const data = await r.json();
-  const answer = data?.choices?.[0]?.message?.content?.trim() || "";
-  return answer || null;
+  return resp.choices?.[0]?.message?.content?.trim() || "I couldn’t generate a summary.";
 }
 
-// ---- Route: POST /api/ask ----
+// POST /api/ask  { question: "..." }
 router.post("/", requireAuth, async (req, res) => {
   try {
-    const question = (req.body?.question || "").trim();
-    if (!question) {
-      return res.status(400).json({ error: "Missing 'question' in body" });
+    const { question } = req.body || {};
+    if (!question || !question.trim()) {
+      return res.status(400).json({ error: "question required" });
+    }
+    if (!fs.existsSync(META_PATH)) {
+      return res.status(500).json({ error: "META_PATH not found" });
+    }
+    if (!fs.existsSync(INDEX_PATH)) {
+      return res.status(500).json({ error: "INDEX_PATH not found" });
     }
 
-    // 1) Retrieve relevant snippets locally
-    const { hits } = await retrieveLocal(question, K);
+    // 1) retrieve
+    const py = await pyAsk(question.trim(), 6);
+    const passages = Array.isArray(py.passages)
+      ? py.passages
+      : Array.isArray(py.citations)
+      ? py.citations
+      : [];
 
-    // 2) If you have OPENAI_API_KEY, create a summarized answer with citations
-    let answer = null;
-    if (OPENAI_API_KEY) {
-      answer = await summarizeWithOpenAI(question, hits);
+    // 2) summarize
+    let answer;
+    if (USE_OPENAI) {
+      answer = await openaiSummary(passages, question.trim());
+    } else {
+      answer = localSummary(passages);
     }
 
-    return res.json({
-      answer,
-      citations: hits,
-      mode: OPENAI_API_KEY ? "local+openai" : "local-only",
-      python: PY, // helpful debug
-    });
+    // 3) trim citations for the UI
+    const citations = passages.slice(0, 10).map((p, i) => ({
+      i: i + 1,
+      id: p.id || p.doc_id || "",
+      title: p.title || "",
+      source: p.site || p.source || "",
+      url: p.final_url || p.url || "",
+    }));
+
+    return res.json({ answer, citations });
   } catch (e) {
     console.error("[/api/ask] error:", e);
-    return res.status(500).json({ error: String(e.message || e) });
+    res.status(500).json({ error: String(e.message || e) });
   }
 });
 
 export default router;
-

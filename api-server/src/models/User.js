@@ -16,12 +16,18 @@ const UserSchema = new mongoose.Schema(
     name: { type: String, trim: true, default: "" },
     passwordHash: { type: String, required: true, select: false },
     roles: { type: [String], default: ["user"] },
+
+    // MFA settings (these are fine in the fields object)
+    mfa: {
+      enabled: { type: Boolean, default: false },
+      secret: { type: String, select: false }, // base32 secret for OTPs
+    },
   },
   {
+    // ✅ Schema options go here
     timestamps: true,
     toJSON: {
       transform(_doc, ret) {
-        // Normalize/clean the JSON we send to clients
         ret.id = ret._id.toString();
         delete ret._id;
         delete ret.__v;
@@ -57,7 +63,6 @@ UserSchema.statics.signup = async function ({ email, name, password }) {
 
   const passwordHash = await bcrypt.hash(password, 12);
 
-  // Race-safe: rely on unique index and catch duplicate-key (11000)
   try {
     const user = await this.create({ email, name: name || "", passwordHash });
     return user;
@@ -70,14 +75,11 @@ UserSchema.statics.signup = async function ({ email, name, password }) {
 };
 
 UserSchema.statics.verify = async function ({ email, password }) {
-  // Need passwordHash, so include it explicitly
   const user = await this.findOne({ email }).select("+passwordHash");
   if (!user) return null;
-
   const ok = await user.checkPassword(password);
   return ok ? user : null;
 };
 
-// Prevent recompiling the model during hot reloads / multiple imports
-export const User = mongoose.models.User || mongoose.model("User", UserSchema);
-
+export const User =
+  mongoose.models.User || mongoose.model("User", UserSchema);
