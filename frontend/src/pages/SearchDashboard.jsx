@@ -1,7 +1,10 @@
+// src/pages/SearchDashboard.jsx
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import api from "../api";
 import ProfileMenu from "../components/ProfileMenu";
+import WorldThreatMap from "../components/WorldThreatMap";
+import SeverityDonut from "../components/SeverityDonut";
 
 export default function SearchDashboard() {
   const [query, setQuery] = useState("");
@@ -41,24 +44,35 @@ export default function SearchDashboard() {
     <main className="min-h-screen bg-gray-900 text-gray-100">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800/60">
-  <h1 className="text-xl font-semibold tracking-wide">
-    Threat Intel Dashboard
-  </h1>
-  <ProfileMenu />
+        <h1 className="text-xl font-semibold tracking-wide">
+          Threat Intel Dashboard
+        </h1>
+        <ProfileMenu />
 
         <div className="flex items-center gap-2">
-          {/* NEW: Visuals Button */}
+          <a
+            href="/cve"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-md transition-colors"
+          >
+            View CVE Feed
+          </a>
+          <Link
+            to="/map"
+            className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded"
+          >
+            Map
+          </Link>
           <Link
             to="/visuals"
             className="text-sm bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded"
           >
             Visuals
           </Link>
-         <Link
-          to="/ask"
+          <Link
+            to="/ask"
             className="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded"
           >
-            Ask AI 
+            Ask AI
           </Link>
         </div>
       </header>
@@ -76,14 +90,14 @@ export default function SearchDashboard() {
           <button
             onClick={() => runSearch("local")}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded disabled:opacity-60"
           >
             Snippets
           </button>
           <button
             onClick={() => runSearch("openai")}
             disabled={loading}
-            className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded"
+            className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded disabled:opacity-60"
           >
             AI Explanation
           </button>
@@ -124,7 +138,19 @@ export default function SearchDashboard() {
           )
         )}
       </section>
-    </main>
+
+      {/* NEW: Global Threat Map panel (always visible on the home dashboard) */}
+      <section className="max-w-6xl mx-auto px-6 pt-8 pb-16">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Global Threat Map</h2>
+          <span className="text-xs text-gray-400">
+            Choropleth of recent CVEs by inferred country (demo)
+          </span>
+        </div>
+        <WorldThreatMap />
+      </section>
+     {/* NEW: Severity donut directly under the map */}
+  <SeverityDonut />
+</main>
   );
 }
-

@@ -1,3 +1,4 @@
+import { requireAuth } from "./requireAuth.js";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -9,6 +10,8 @@ import askRoutes from "./routes/ask.js";
 import authRouter from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
 import mfaRoutes from "./routes/mfa.js";
+import cveRouter from "./routes/cve.js";
+import mapRouter from "./routes/map.js";
 
 // ----- App & Parsers -----
 const app = express();
@@ -95,6 +98,8 @@ app.use("/api/search", searchRoutes);
 app.use("/api/ask", askRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/mfa", mfaRoutes);
+app.use("/api/cve", cveRouter);
+app.use("/api/map", requireAuth, mapRouter);
 
 // mount routers BEFORE 404
 app.use("/api/auth", authRouter);

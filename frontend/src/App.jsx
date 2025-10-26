@@ -4,6 +4,8 @@ import Login from "./pages/Login.jsx";
 import SearchDashboard from "./pages/SearchDashboard.jsx";
 import AiAskDashboard from "./pages/AiAskDashboard.jsx";
 import Signup from "./pages/Signup";
+import RecentCVEs from "./pages/RecentCVEs";
+import GlobalThreatMap from "./pages/GlobalThreatMap";
 
 function Nav() {
   const navigate = useNavigate();
@@ -46,6 +48,8 @@ export default function App() {
         <Route path="/" element={<Guard><SearchDashboard /></Guard>} />
         <Route path="*" element={<Navigate to="/" replace />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/map" element={<GlobalThreatMap />} />
+        <Route path="/cve" element={<RecentCVEs />} />
       </Routes>
     </div>
   );
