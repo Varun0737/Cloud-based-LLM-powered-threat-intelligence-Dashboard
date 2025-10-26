@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import api from "../api";
+import ProfileMenu from "../components/ProfileMenu";
 
 export default function SearchDashboard() {
   const [query, setQuery] = useState("");
@@ -40,9 +41,10 @@ export default function SearchDashboard() {
     <main className="min-h-screen bg-gray-900 text-gray-100">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800/60">
-        <h1 className="text-xl font-semibold tracking-wide">
-          Threat Intel Dashboard
-        </h1>
+  <h1 className="text-xl font-semibold tracking-wide">
+    Threat Intel Dashboard
+  </h1>
+  <ProfileMenu />
 
         <div className="flex items-center gap-2">
           {/* NEW: Visuals Button */}
@@ -58,13 +60,6 @@ export default function SearchDashboard() {
           >
             Ask AI 
           </Link>
-          {/* Logout Button */}
-          <button
-            onClick={logout}
-            className="text-sm bg-red-500 hover:bg-red-600 px-3 py-1 rounded"
-          >
-            Logout
-          </button>
         </div>
       </header>
 
