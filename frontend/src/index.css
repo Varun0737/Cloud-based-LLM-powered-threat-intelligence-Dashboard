@@ -3,4 +3,90 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light dark; }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --neon-cyan: #00f3ff;
+  --neon-pink: #ff003c;
+  --bg-cyber: #050510;
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg-cyber);
+  color: #e2e8f0;
+  font-family: 'Rajdhani', sans-serif;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #02020a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
+}
+
+/* Custom Button Overrides to Fix Visibility */
+.btn-cyan {
+  background-color: rgba(0, 243, 255, 0.1);
+  border: 1px solid #00f3ff;
+  color: #00f3ff;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-cyan:hover {
+  background-color: #00f3ff !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+}
+
+.btn-purple {
+  background-color: rgba(157, 0, 255, 0.1);
+  border: 1px solid #9d00ff;
+  color: #9d00ff;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-purple:hover {
+  background-color: #9d00ff !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 15px rgba(157, 0, 255, 0.5);
+}
+
+.btn-cyan-solid {
+  background-color: #00f3ff;
+  color: #000000;
+  border: 1px solid #00f3ff;
+  font-weight: 700;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-cyan-solid:hover {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.8);
+}

@@ -48,25 +48,30 @@ export default function VisualDashboard() {
   }, []);
 
   const xSources = top.map(d => d.source);
-  const yCounts  = top.map(d => d.count);
+  const yCounts = top.map(d => d.count);
 
   const volX = vol.map(d => d.bucket);
   const volY = vol.map(d => d.count);
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="px-6 py-4 border-b bg-white/80 backdrop-blur">
-        <h1 className="text-xl font-semibold">Threat Analytics</h1>
-        <p className="text-sm text-gray-500">Week 8 · Stage 2 (live data)</p>
+    <main className="min-h-screen p-6 font-tech text-gray-100">
+      <header className="flex items-center justify-between mb-8 border-b border-neon-purple/20 pb-4">
+        <div>
+          <h1 className="text-2xl font-cyber text-neon-purple drop-shadow-[0_0_8px_rgba(157,0,255,0.4)]">Threat Analytics</h1>
+          <p className="text-sm text-gray-400 font-mono tracking-wide">Analysis Cycle: Active · Live Data Feed</p>
+        </div>
+        <a href="/" className="text-sm font-bold uppercase tracking-wider border border-neon-purple/30 px-4 py-2 rounded hover:bg-neon-purple/10 hover:border-neon-purple text-neon-purple transition-colors">
+          ← Dashboard
+        </a>
       </header>
 
-      <section className="max-w-6xl mx-auto p-6 space-y-8">
-        {loading && <p className="text-gray-500">Loading charts…</p>}
+      <section className="max-w-6xl mx-auto space-y-8">
+        {loading && <p className="text-neon-cyan animate-pulse">Processing data streams...</p>}
         {err && <p className="text-red-600">{err}</p>}
 
         {/* Top Sources - Bar */}
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold mb-3">Top Sources (Bar)</h2>
+        <div className="rounded-xl border border-neon-purple/20 bg-cyber-gray/30 backdrop-blur-sm p-5 shadow-[0_0_15px_rgba(157,0,255,0.05)]">
+          <h2 className="text-lg font-cyber text-gray-200 mb-4 border-l-4 border-neon-purple pl-3">Top Threat Sources</h2>
           <Plot
             data={[
               {
@@ -74,12 +79,16 @@ export default function VisualDashboard() {
                 x: xSources,
                 y: yCounts,
                 hovertemplate: "%{x}: %{y} reports<extra></extra>",
+                marker: { color: "#9d00ff", opacity: 0.8 },
               },
             ]}
             layout={{
               margin: { t: 10, r: 20, b: 60, l: 50 },
-              xaxis: { title: "Source" },
-              yaxis: { title: "Count" },
+              xaxis: { title: "Source", color: "#9ca3af" },
+              yaxis: { title: "Count", color: "#9ca3af" },
+              paper_bgcolor: "rgba(0,0,0,0)",
+              plot_bgcolor: "rgba(0,0,0,0)",
+              font: { color: "#e5e7eb", family: "Rajdhani" },
               autosize: true,
             }}
             useResizeHandler
@@ -89,8 +98,8 @@ export default function VisualDashboard() {
         </div>
 
         {/* Top Sources - Pie */}
-        <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <h2 className="text-lg font-semibold mb-3">Top Sources (Share)</h2>
+        <div className="rounded-xl border border-neon-pink/20 bg-cyber-gray/30 backdrop-blur-sm p-5 shadow-[0_0_15px_rgba(255,0,60,0.05)]">
+          <h2 className="text-lg font-cyber text-gray-200 mb-4 border-l-4 border-neon-pink pl-3">Target Distribution</h2>
           <Plot
             data={[
               {
@@ -99,9 +108,15 @@ export default function VisualDashboard() {
                 values: yCounts,
                 textinfo: "label+percent",
                 hovertemplate: "%{label}: %{value} reports<extra></extra>",
+                marker: { colors: ["#00f3ff", "#ff003c", "#00ff9d", "#fcee0a", "#9d00ff"] },
               },
             ]}
-            layout={{ margin: { t: 10, r: 10, b: 10, l: 10 }, autosize: true }}
+            layout={{
+              margin: { t: 10, r: 10, b: 10, l: 10 },
+              autosize: true,
+              paper_bgcolor: "rgba(0,0,0,0)",
+              font: { color: "#e5e7eb", family: "Rajdhani" },
+            }}
             useResizeHandler
             style={{ width: "100%", height: "420px" }}
             config={{ displaylogo: false, responsive: true }}
@@ -110,8 +125,8 @@ export default function VisualDashboard() {
 
         {/* Volume Line (only if we have data) */}
         {vol.length > 0 && (
-          <div className="rounded-xl border bg-white p-4 shadow-sm">
-            <h2 className="text-lg font-semibold mb-3">Documents Over Time</h2>
+          <div className="rounded-xl border border-neon-cyan/20 bg-cyber-gray/30 backdrop-blur-sm p-5 shadow-[0_0_15px_rgba(0,243,255,0.05)]">
+            <h2 className="text-lg font-cyber text-gray-200 mb-4 border-l-4 border-neon-cyan pl-3">Temporal Analysis</h2>
             <Plot
               data={[
                 {
@@ -120,12 +135,16 @@ export default function VisualDashboard() {
                   x: volX,
                   y: volY,
                   hovertemplate: "%{x}: %{y}<extra></extra>",
+                  line: { color: "#00f3ff" },
                 },
               ]}
               layout={{
                 margin: { t: 10, r: 20, b: 60, l: 50 },
-                xaxis: { title: "Date" },
-                yaxis: { title: "Count" },
+                xaxis: { title: "Date", color: "#9ca3af" },
+                yaxis: { title: "Count", color: "#9ca3af" },
+                paper_bgcolor: "rgba(0,0,0,0)",
+                plot_bgcolor: "rgba(0,0,0,0)",
+                font: { color: "#e5e7eb", family: "Rajdhani" },
                 autosize: true,
               }}
               useResizeHandler

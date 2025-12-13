@@ -1,16 +1,17 @@
-// src/pages/SearchDashboard.jsx
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import api from "../api";
 import ProfileMenu from "../components/ProfileMenu";
-import WorldThreatMap from "../components/WorldThreatMap";
+import WorldThreatMap from "../components/WorldThreatMap"; // Can be removed later if unused
 import SeverityDonut from "../components/SeverityDonut";
+import CyberGlobe from "../components/CyberGlobe";
 
 export default function SearchDashboard() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [answer, setAnswer] = useState("");
   const [mode, setMode] = useState("local"); // or "openai"
 
   const runSearch = async (selectedMode = "local") => {
@@ -18,6 +19,7 @@ export default function SearchDashboard() {
     setLoading(true);
     setError("");
     setResults([]);
+    setAnswer(""); // clear previous
     setMode(selectedMode);
 
     try {
@@ -27,6 +29,7 @@ export default function SearchDashboard() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setResults(res.data.results || []);
+      if (res.data.answer) setAnswer(res.data.answer);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.error || err.message);
@@ -35,16 +38,11 @@ export default function SearchDashboard() {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  };
-
   return (
-    <main className="min-h-screen bg-gray-900 text-gray-100">
+    <main className="min-h-screen p-6 font-tech text-gray-100">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800/60">
-        <h1 className="text-xl font-semibold tracking-wide">
+      <header className="flex items-center justify-between mb-8 border-b border-neon-cyan/20 pb-4">
+        <h1 className="text-2xl font-cyber text-neon-cyan tracking-wide drop-shadow-[0_0_5px_rgba(0,243,255,0.4)]">
           Threat Intel Dashboard
         </h1>
         <ProfileMenu />
@@ -52,25 +50,25 @@ export default function SearchDashboard() {
         <div className="flex items-center gap-2">
           <a
             href="/cve"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1.5 rounded-md transition-colors"
+            className="border border-neon-green/30 text-neon-green hover:bg-neon-green/10 text-xs uppercase px-3 py-1.5 rounded transition-colors"
           >
-            View CVE Feed
+            Confirmed Targets (CVE)
           </a>
           <Link
             to="/map"
-            className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded"
+            className="border border-neon-pink/30 text-neon-pink hover:bg-neon-pink/10 text-xs uppercase px-3 py-1.5 rounded transition-colors"
           >
-            Map
+            Global Map
           </Link>
           <Link
             to="/visuals"
-            className="text-sm bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded"
+            className="border border-neon-yellow/30 text-neon-yellow hover:bg-neon-yellow/10 text-xs uppercase px-3 py-1.5 rounded transition-colors"
           >
-            Visuals
+            Data Visuals
           </Link>
           <Link
             to="/ask"
-            className="text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded"
+            className="btn-cyan-solid text-xs uppercase font-bold px-3 py-1.5 rounded"
           >
             Ask AI
           </Link>
@@ -78,79 +76,94 @@ export default function SearchDashboard() {
       </header>
 
       {/* Search Section */}
-      <section className="p-6 max-w-4xl mx-auto">
+      <section className="p-6 max-w-4xl mx-auto rounded-xl bg-cyber-gray/30 backdrop-blur-sm border border-neon-cyan/20 shadow-[0_0_20px_rgba(0,243,255,0.05)]">
         <div className="flex gap-2 mb-4">
           <input
             type="text"
-            className="flex-1 px-3 py-2 rounded bg-gray-800 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Search threats (e.g., phishing, CVE-2024)"
+            className="flex-1 px-4 py-3 rounded bg-black/50 border border-neon-cyan/30 text-neon-cyan placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all font-mono"
+            placeholder="Initialize search sequence (e.g., 'Target: Phishing', 'ID: CVE-2024')"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           <button
             onClick={() => runSearch("local")}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded disabled:opacity-60"
+            className="btn-cyan px-6 py-2 rounded disabled:opacity-50 font-cyber uppercase text-sm tracking-wider"
           >
-            Snippets
+            Scan Records
           </button>
           <button
             onClick={() => runSearch("openai")}
             disabled={loading}
-            className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded disabled:opacity-60"
+            className="btn-purple px-6 py-2 rounded disabled:opacity-50 font-cyber uppercase text-sm tracking-wider"
           >
-            AI Explanation
+            AI Analysis
           </button>
         </div>
 
         {loading && (
-          <p className="text-gray-400 italic">Searching {mode} results...</p>
+          <p className="text-neon-cyan animate-pulse font-mono text-sm">&gt;&gt; ACCESSING CLASSIFIED DATABASE...</p>
         )}
-        {error && <p className="text-red-400">{error}</p>}
+        {error && <p className="text-neon-pink font-bold">ERROR: {error}</p>}
       </section>
 
       {/* Results Section */}
-      <section className="max-w-4xl mx-auto px-6 pb-10">
+      <section className="max-w-4xl mx-auto pt-8 pb-10">
+        {answer && (
+          <div className="mb-8 p-6 bg-cyber-black/80 rounded-lg border border-neon-purple/50 shadow-[0_0_15px_rgba(180,0,255,0.2)]">
+            <h2 className="font-cyber text-neon-purple mb-3 border-b border-neon-purple/20 pb-2 tracking-wider">
+              SENTINEL ANALYSIS
+            </h2>
+            <div className="whitespace-pre-wrap text-gray-200 leading-relaxed font-mono text-sm border-l-2 border-neon-purple pl-4">
+              {answer}
+            </div>
+          </div>
+        )}
+
         {results.length > 0 ? (
           <ul className="space-y-6">
             {results.map((r, idx) => (
               <li
                 key={idx}
-                className="p-4 bg-gray-800 rounded-lg border border-gray-700 shadow-sm"
+                className="p-5 bg-cyber-gray/20 rounded-lg border border-gray-800 hover:border-neon-cyan/50 hover:shadow-[0_0_15px_rgba(0,243,255,0.1)] transition-all group"
               >
-                <h3 className="font-semibold text-lg mb-2">{r.title}</h3>
-                <p className="text-gray-300 text-sm mb-2">
+                <h3 className="font-cyber text-lg mb-2 text-gray-100 group-hover:text-neon-cyan transition-colors">{r.title}</h3>
+                <p className="text-gray-400 text-sm mb-3 leading-relaxed font-mono">
                   {(r.snippet || "").slice(0, 400)}...
                 </p>
-                <div className="text-xs text-gray-500">
-                  <span>Source: {r.source || "unknown"}</span> ·{" "}
-                  <span>ID: {r.id}</span>
+                <div className="text-xs text-gray-500 font-mono flex gap-4 border-t border-gray-800 pt-3">
+                  <span className="text-neon-cyan/60">SOURCE::{(r.source || "UNKNOWN").toUpperCase()}</span>
+                  <span>ID::{r.id}</span>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
           !loading &&
-          !error && (
-            <p className="text-gray-400 italic text-center mt-10">
-              No results yet. Try searching something like “phishing”.
+          !error &&
+          !answer && (
+            <p className="text-gray-600 italic text-center mt-10 font-mono">
+              // Awaiting operator input...
             </p>
           )
         )}
       </section>
 
-      {/* NEW: Global Threat Map panel (always visible on the home dashboard) */}
-      <section className="max-w-6xl mx-auto px-6 pt-8 pb-16">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Global Threat Map</h2>
-          <span className="text-xs text-gray-400">
-            Choropleth of recent CVEs by inferred country (demo)
+      {/* Global Threat Map panel */}
+      <section className="max-w-6xl mx-auto pt-8 pb-16">
+        <div className="flex items-center justify-between mb-3 border-l-4 border-neon-yellow pl-3">
+          <h2 className="text-lg font-cyber text-gray-200">Global Threat Visualizer</h2>
+          <span className="text-xs text-neon-yellow px-2 py-0.5 border border-neon-yellow/30 rounded bg-neon-yellow/5">
+            LIVE FEED
           </span>
         </div>
-        <WorldThreatMap />
+
+        {/* Replaced WorldThreatMap with CyberGlobe */}
+        <CyberGlobe />
+
       </section>
-     {/* NEW: Severity donut directly under the map */}
-  <SeverityDonut />
-</main>
+      {/* NEW: Severity donut directly under the map */}
+      <SeverityDonut />
+    </main>
   );
 }

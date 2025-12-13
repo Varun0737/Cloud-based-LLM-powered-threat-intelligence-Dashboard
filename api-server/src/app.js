@@ -11,6 +11,7 @@ import authRouter from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
 import mfaRoutes from "./routes/mfa.js";
 import cveRouter from "./routes/cve.js";
+import threatsRouter from "./routes/threats.js";
 import mapRouter from "./routes/map.js";
 
 // ----- App & Parsers -----
@@ -95,14 +96,15 @@ app.get("/api/docs", (_req, res) => {
 app.use("/api/stats", statsRoutes);
 app.use("/api/auth", authRouter);
 app.use("/api/search", searchRoutes);
-app.use("/api/ask", askRoutes);
+app.use("/api/ask", requireAuth, askRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/mfa", mfaRoutes);
-app.use("/api/cve", cveRouter);
+app.use("/api/cve", requireAuth, cveRouter);
+app.use("/api/threats", requireAuth, threatsRouter);
 app.use("/api/map", requireAuth, mapRouter);
 
 // mount routers BEFORE 404
-app.use("/api/auth", authRouter);
+
 
 // ----- 404 -----
 app.use((req, res) => {

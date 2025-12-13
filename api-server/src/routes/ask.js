@@ -139,39 +139,74 @@ router.post("/", requireAuth, async (req, res) => {
     if (!question || !question.trim()) {
       return res.status(400).json({ error: "question required" });
     }
-    if (!fs.existsSync(META_PATH)) {
-      return res.status(500).json({ error: "META_PATH not found" });
-    }
-    if (!fs.existsSync(INDEX_PATH)) {
-      return res.status(500).json({ error: "INDEX_PATH not found" });
-    }
 
-    // 1) retrieve
-    const py = await pyAsk(question.trim(), 6);
-    const passages = Array.isArray(py.passages)
-      ? py.passages
-      : Array.isArray(py.citations)
-      ? py.citations
-      : [];
+    // [NEW] Fetch Real-Time Context
+    const { default: ThreatReport } = await import("../models/ThreatReport.js");
+    const { default: CVE } = await import("../models/CVE.js");
 
-    // 2) summarize
+    const recentThreats = await ThreatReport.find().sort({ pubDate: -1 }).limit(6);
+    const criticalCVEs = await CVE.find({ severity: "CRITICAL" }).sort({ published: -1 }).limit(6);
+
+    // Build Context String
+    const threatContext = recentThreats.map((t, i) => `[News-${i + 1}] ${t.title} (${t.source}): ${t.summary}`).join("\n");
+    const cveContext = criticalCVEs.map((c, i) => `[CVE-${i + 1}] ${c.id}: ${c.summary.substring(0, 150)}...`).join("\n");
+
+    // 2) Summarize / Answer (Using OpenAI or Local Fallback)
+    // We override the default "passage" logic to prefer our fresh data if available
     let answer;
     if (USE_OPENAI) {
-      answer = await openaiSummary(passages, question.trim());
+      const { default: OpenAI } = await import("openai");
+      const client = new OpenAI({ apiKey: OPENAI_KEY });
+
+      const systemPrompt = `You are an elite Cyber Threat Intelligence Analyst (Persona: 'Sentinel'). 
+Your instructions:
+1. Provide personalized, high-value intelligence reports.
+2. ALWAYS analyze the user's question against the provided "LATEST THREAT INTEL" and "CRITICAL VULNERABILITIES".
+3. If the user asks about recent threats, cite the provided news/CVEs directly.
+4. maintain a professional, slightly urgent, and highly technical tone.
+5. If you don't have data, say "No active signals found in the current sector."
+
+Data Sources:
+LATEST THREAT INTEL:
+${threatContext}
+
+CRITICAL VULNERABILITIES:
+${cveContext}
+`;
+
+      const userPrompt = `Analyst Request: ${question}`;
+
+      const resp = await client.chat.completions.create({
+        model: OPENAI_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.3,
+        max_tokens: 800,
+      });
+      answer = resp.choices?.[0]?.message?.content?.trim();
     } else {
-      answer = localSummary(passages);
+      // Local Mode Fallback (Simulated Intelligence)
+      // Since we can't run a local LLM here easily, we construct a smart template response.
+      answer = `**[SENTINEL LOCAL SYSTEM]**\n\n**STATUS**: OFFLINE (OpenAI Key not detected).\n**ANALYSIS**: Query "${question}" acknowledged.\n\n**LATEST INTERCEPTED SIGNALS**:\n\n${threatContext || "No recent news signals intercepted."}\n\n**CRITICAL VULNERABILITIES**:\n${cveContext || "No critical CVEs found locally."}`;
     }
 
-    // 3) trim citations for the UI
-    const citations = passages.slice(0, 10).map((p, i) => ({
+    // Convert our DB items to "citations" format for the UI
+    const newsCitations = recentThreats.map((t, i) => ({
       i: i + 1,
-      id: p.id || p.doc_id || "",
-      title: p.title || "",
-      source: p.site || p.source || "",
-      url: p.final_url || p.url || "",
+      id: "NEWS",
+      title: t.title,
+      source: t.source,
+      url: t.link
     }));
 
-    return res.json({ answer, citations });
+    return res.json({ answer, citations: newsCitations });
+
+    /* 
+    // Legacy Code (Disabled for new Intelligence System)
+    if (!fs.existsSync(META_PATH)) { ... }
+    */
   } catch (e) {
     console.error("[/api/ask] error:", e);
     res.status(500).json({ error: String(e.message || e) });

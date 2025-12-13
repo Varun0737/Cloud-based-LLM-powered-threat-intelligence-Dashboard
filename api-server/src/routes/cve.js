@@ -1,5 +1,8 @@
 // api-server/src/routes/cve.js
+// api-server/src/routes/cve.js
 import { Router } from "express";
+import { fetchSecurityNews } from "../services/scraperService.js";
+import { requireAuth } from "../requireAuth.js";
 
 const router = Router();
 
@@ -24,7 +27,7 @@ function getSeverityAndScore(cve = {}) {
 
   if (v31) return { severity: v31.cvssData?.baseSeverity, score: v31.cvssData?.baseScore };
   if (v30) return { severity: v30.cvssData?.baseSeverity, score: v30.cvssData?.baseScore };
-  if (v2)  return { severity: v2.baseSeverity || "N/A", score: v2.cvssData?.baseScore || v2.baseScore };
+  if (v2) return { severity: v2.baseSeverity || "N/A", score: v2.cvssData?.baseScore || v2.baseScore };
   return { severity: undefined, score: undefined };
 }
 
@@ -87,9 +90,9 @@ function extractCvssFromText(txt = "") {
   // 2) Severity keywords → mid-bucket scores
   const lower = txt.toLowerCase();
   if (/\bcritical\b/.test(lower)) return 9.8;
-  if (/\bhigh\b/.test(lower))     return 8.2;
+  if (/\bhigh\b/.test(lower)) return 8.2;
   if (/\bmedium\b|\bmoderate\b/.test(lower)) return 5.6;
-  if (/\blow\b/.test(lower))      return 3.1;
+  if (/\blow\b/.test(lower)) return 3.1;
 
   return null;
 }
@@ -108,11 +111,7 @@ router.get("/recent", async (req, res) => {
     const start = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     const iso = (d) => d.toISOString().split(".")[0] + "Z"; // trim ms
 
-    const nvdUrl =
-      `https://services.nvd.nist.gov/rest/json/cves/2.0?` +
-      `pubStartDate=${encodeURIComponent(iso(start))}&` +
-      `pubEndDate=${encodeURIComponent(iso(end))}&` +
-      `startIndex=0&resultsPerPage=${limit}`;
+    const nvdUrl = `https://services.nvd.nist.gov/rest/json/cves/2.0?pubStartDate=${encodeURIComponent(iso(start))}&pubEndDate=${encodeURIComponent(iso(end))}&startIndex=0&resultsPerPage=${limit}`;
 
     /** Step 1: Try NVD */
     let rawItems;
@@ -126,7 +125,7 @@ router.get("/recent", async (req, res) => {
         const c = v.cve || {};
         const desc = getEnglishDescription(c);
         const title = makeTitleFromDescription(c.id, desc);
-        const { score } = getSeverityAndScore(c);
+        const metrics = getSeverityAndScore(c);
         const vendor = extractVendorFromConfigurations(c.configurations);
 
         return {
@@ -135,7 +134,8 @@ router.get("/recent", async (req, res) => {
           summary: desc,
           vendor: vendor || null,
           published: c.published || null,
-          cvssScore: typeof score === "number" ? score : null,
+          severity: metrics.severity || null,
+          score: metrics.score || null,
         };
       });
     } catch (nvdErr) {
@@ -157,16 +157,30 @@ router.get("/recent", async (req, res) => {
           summary,
           vendor: null, // CIRCL 'last' doesn't consistently expose vendor
           published: it.Published || it.published || null,
-          cvssScore: typeof it.cvss === "number" ? it.cvss : null,
+          severity: null, // CIRCL doesn't provide severity, will compute later
+          score: typeof it.cvss === "number" ? it.cvss : null,
         };
       });
     }
 
     /** Final mapping the way you requested */
     const items = (rawItems || []).map((it) => {
-      const cvss =
-        (typeof it.cvssScore === "number" ? it.cvssScore : undefined) ??
-        extractCvssFromText(`${it.title || ""} ${it.summary || ""}`);
+      // 1. Resolve Score
+      // Use existing 'score' or fallback to extraction
+      let finalScore = it.score;
+      if (typeof finalScore !== "number") {
+        finalScore = extractCvssFromText(`${it.title || ""} ${it.summary || ""}`);
+      }
+
+      // 2. Resolve Severity
+      // Use existing 'severity' or compute from score
+      let finalSeverity = it.severity;
+      if (!finalSeverity && typeof finalScore === "number") {
+        if (finalScore >= 9.0) finalSeverity = "CRITICAL";
+        else if (finalScore >= 7.0) finalSeverity = "HIGH";
+        else if (finalScore >= 4.0) finalSeverity = "MEDIUM";
+        else finalSeverity = "LOW";
+      }
 
       return {
         id: it.id,
@@ -174,7 +188,8 @@ router.get("/recent", async (req, res) => {
         summary: it.summary,
         vendor: it.vendor,
         published: it.published,
-        cvssScore: typeof cvss === "number" ? cvss : null,
+        severity: finalSeverity || "N/A",
+        score: typeof finalScore === "number" ? finalScore : null,
       };
     });
 
@@ -182,6 +197,196 @@ router.get("/recent", async (req, res) => {
   } catch (e) {
     console.error("[/api/cve/recent] error:", e);
     res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
+/**
+ * POST /api/cve/seed
+ * Triggers a background fetch of recent CVEs to populate the local DB.
+ * Target: ~10,000 items (High/Critical focus preferably, or just recent).
+ */
+import CVE from "../models/CVE.js";
+
+router.post("/seed", async (req, res) => {
+  // Respond immediately
+  res.json({ message: "Seeding started in background..." });
+
+  const TOTAL_TARGET = 10000;
+  const PER_PAGE = 2000; // NVD max is usually 2000
+  let fetched = 0;
+  let startIndex = 0;
+
+  console.log("Starting CVE seed...");
+
+  try {
+    while (fetched < TOTAL_TARGET) {
+      const nvdUrl =
+        `https://services.nvd.nist.gov/rest/json/cves/2.0?` +
+        `resultsPerPage=${PER_PAGE}&startIndex=${startIndex}&noRejected`;
+
+      console.log(`Fetching NVD page: ${startIndex} (Target: ${TOTAL_TARGET})`);
+
+      const r = await fetch(nvdUrl, {
+        headers: {
+          "User-Agent": "threat-intel-dashboard",
+          // Add API Key if available: "apiKey": process.env.NVD_API_KEY 
+        }
+      });
+
+      if (!r.ok) {
+        console.error(`NVD Error ${r.status}`);
+        break;
+      }
+
+      const data = await r.json();
+      const vulnerabilities = data.vulnerabilities || [];
+      if (vulnerabilities.length === 0) break;
+
+      // Process and Insert
+      const ops = vulnerabilities.map(v => {
+        const c = v.cve || {};
+        const metrics = getSeverityAndScore(c);
+
+        // Resolve Severity/Score logic similar to /recent
+        let score = metrics.score;
+        let severity = metrics.severity;
+
+        // Fallback for missing severity
+        if (!severity && typeof score === "number") {
+          if (score >= 9.0) severity = "CRITICAL";
+          else if (score >= 7.0) severity = "HIGH";
+          else if (score >= 4.0) severity = "MEDIUM";
+          else severity = "LOW";
+        }
+
+        return {
+          updateOne: {
+            filter: { id: c.id },
+            update: {
+              $set: {
+                title: makeTitleFromDescription(c.id, getEnglishDescription(c)),
+                summary: getEnglishDescription(c),
+                vendor: extractVendorFromConfigurations(c.configurations),
+                published: c.published,
+                lastModified: c.lastModified,
+                score: score,
+                severity: severity || "UNKNOWN",
+                source: "NVD"
+              }
+            },
+            upsert: true
+          }
+        };
+      });
+
+      if (ops.length > 0) {
+        await CVE.bulkWrite(ops);
+        console.log(`Upserted ${ops.length} CVEs.`);
+      }
+
+      fetched += vulnerabilities.length;
+      startIndex += vulnerabilities.length;
+
+      // Sleep to respect rate limits (NVD w/o key is slow)
+      // With no key: roughly 6s delay recommended? Or just wait 2s.
+      // If user has key, it's faster.
+      await new Promise(resolve => setTimeout(resolve, 6000));
+    }
+    console.log("Seeding complete.");
+  } catch (e) {
+    console.error("Seeding failed:", e);
+  }
+});
+
+/**
+ * GET /api/cve/stats
+ * Returns aggregation for donut chart
+ */
+router.get("/stats", async (req, res) => {
+  try {
+    const total = await CVE.countDocuments();
+
+    // Aggregate by Severity
+    const agg = await CVE.aggregate([
+      {
+        $group: {
+          _id: { $toUpper: "$severity" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Format: { Critical: 10, High: 50, ... }
+    const buckets = { Critical: 0, High: 0, Medium: 0, Low: 0, Unknown: 0 };
+    agg.forEach(g => {
+      let key = g._id;
+      // Capitalize first letter
+      if (key) {
+        key = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
+        if (buckets[key] !== undefined) buckets[key] = g.count;
+        else buckets.Unknown += g.count; // map strange values to Unknown
+      } else {
+        buckets.Unknown += g.count;
+      }
+    });
+
+    res.json({ total, buckets });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Sync Threat News
+router.post("/sync-news", requireAuth, async (req, res) => {
+  try {
+    const result = await fetchSecurityNews();
+    res.json({ message: "Threat intelligence synced", stats: result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/cve/all (Stored DB Pagination)
+router.get("/all", requireAuth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page || "1", 10);
+    const limit = parseInt(req.query.limit || "50", 10);
+    const q = (req.query.q || "").trim();
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    let sort = { published: -1 };
+    let projection = {};
+
+    if (q) {
+      filter.$text = { $search: q };
+      projection = { score: { $meta: "textScore" } };
+      sort = { score: { $meta: "textScore" } };
+    }
+
+    const total = await CVE.countDocuments(filter);
+    const items = await CVE.find(filter, projection).sort(sort).skip(skip).limit(limit);
+
+    res.json({
+      items,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/cve/:id (Single Detail)
+router.get("/:id", requireAuth, async (req, res) => {
+  try {
+    const cve = await CVE.findOne({ id: req.params.id });
+    if (!cve) return res.status(404).json({ error: "CVE not found" });
+    res.json(cve);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
