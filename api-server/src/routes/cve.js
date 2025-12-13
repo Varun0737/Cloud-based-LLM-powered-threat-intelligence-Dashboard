@@ -62,6 +62,49 @@ function extractVendorFromConfigurations(conf = {}) {
 }
 
 /**
+ * Fallback: Extract vendor from references (e.g. "https://helpx.adobe.com/..." -> "adobe")
+ */
+function extractVendorFromReferences(refs = []) {
+  for (const r of refs) {
+    try {
+      const u = new URL(r.url);
+      const host = u.hostname.replace(/^www\./, "");
+      // Common domains map
+      if (host.includes("adobe")) return "Adobe";
+      if (host.includes("microsoft")) return "Microsoft";
+      if (host.includes("google")) return "Google";
+      if (host.includes("apple")) return "Apple";
+      if (host.includes("cisco")) return "Cisco";
+      if (host.includes("oracle")) return "Oracle";
+      if (host.includes("ibm")) return "IBM";
+      if (host.includes("linux") || host.includes("kernel.org")) return "Linux";
+      if (host.includes("android")) return "Android";
+      // Generic domain (skip github/generic lists if possible, but use as last resort)
+      if (!host.includes("github") && !host.includes("nist") && !host.includes("mitre")) {
+        const parts = host.split(".");
+        if (parts.length >= 2) return parts[parts.length - 2].charAt(0).toUpperCase() + parts[parts.length - 2].slice(1);
+      }
+    } catch (_) { }
+  }
+  return null;
+}
+
+/**
+ * Fallback: Extract from sourceIdentifier (e.g. "secure@microsoft.com" -> "Microsoft")
+ */
+function extractVendorFromSource(src = "") {
+  if (src.includes("@")) {
+    const domain = src.split("@")[1];
+    const parts = domain.split(".");
+    if (parts.length >= 2) {
+      const name = parts[parts.length - 2];
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    }
+  }
+  return null;
+}
+
+/**
  * Helper: derive a concise title from a longer description.
  * Uses the first sentence or trims to 100 chars.
  */
@@ -212,16 +255,23 @@ router.post("/seed", async (req, res) => {
   res.json({ message: "Seeding started in background..." });
 
   const TOTAL_TARGET = 10000;
-  const PER_PAGE = 2000; // NVD max is usually 2000
+  const PER_PAGE = 2000;
   let fetched = 0;
   let startIndex = 0;
 
   console.log("Starting CVE seed...");
 
   try {
+    // Seed last 120 days to ensure relevant data
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 120);
+    const iso = (d) => d.toISOString().split(".")[0];
+
     while (fetched < TOTAL_TARGET) {
       const nvdUrl =
         `https://services.nvd.nist.gov/rest/json/cves/2.0?` +
+        `pubStartDate=${iso(start)}&pubEndDate=${iso(end)}&` +
         `resultsPerPage=${PER_PAGE}&startIndex=${startIndex}&noRejected`;
 
       console.log(`Fetching NVD page: ${startIndex} (Target: ${TOTAL_TARGET})`);
@@ -266,7 +316,7 @@ router.post("/seed", async (req, res) => {
               $set: {
                 title: makeTitleFromDescription(c.id, getEnglishDescription(c)),
                 summary: getEnglishDescription(c),
-                vendor: extractVendorFromConfigurations(c.configurations),
+                vendor: extractVendorFromConfigurations(c.configurations) || extractVendorFromReferences(c.references) || extractVendorFromSource(c.sourceIdentifier),
                 published: c.published,
                 lastModified: c.lastModified,
                 score: score,

@@ -2,6 +2,7 @@ import { Router } from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { requireAuth } from "../requireAuth.js";
+import CVE from "../models/CVE.js"; // Import CVE model
 
 const router = Router();
 
@@ -73,6 +74,54 @@ router.get("/volume", requireAuth, (req, res) => {
     .sort((a, b) => (a.bucket < b.bucket ? -1 : 1));
 
   res.json({ bucket: "day", data });
+});
+
+// --- New CVE Analytics ---
+
+// GET /api/stats/cve-vendors (Top 5 Vendors)
+router.get("/cve-vendors", requireAuth, async (req, res) => {
+  try {
+    const agg = await CVE.aggregate([
+      { $match: { vendor: { $exists: true, $ne: null } } },
+      { $match: { vendor: { $ne: "" } } },
+      { $group: { _id: "$vendor", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+    console.log("[DEBUG] Vendors Agg:", agg);
+    res.json(agg);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/stats/cve-trend (By Month)
+router.get("/cve-trend", requireAuth, async (req, res) => {
+  try {
+    const agg = await CVE.aggregate([
+      { $match: { published: { $exists: true } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$published" },
+            month: { $month: "$published" }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } }
+    ]);
+
+    // Format for frontend: "2023-01"
+    const data = agg.map(item => ({
+      period: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
+      count: item.count
+    }));
+
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 export default router;
